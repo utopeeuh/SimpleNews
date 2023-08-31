@@ -39,8 +39,13 @@ class CoreDataHelper {
     }
   }
   
-  func fetchEntities<T: NSManagedObject>(_ entityClass: T.Type, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> [T] {
-    let fetchRequest: NSFetchRequest<T> = T.fetchRequest() as! NSFetchRequest<T>
+  func fetchEntities<T: NSManagedObject>(_ entityName: String, predicate: NSPredicate? = nil, sortDescriptors: [NSSortDescriptor]? = nil) -> [T] {
+    guard let entityDescription = NSEntityDescription.entity(forEntityName: entityName, in: context) else {
+      return []
+    }
+    
+    let fetchRequest = NSFetchRequest<T>()
+    fetchRequest.entity = entityDescription
     fetchRequest.predicate = predicate
     fetchRequest.sortDescriptors = sortDescriptors
     
@@ -52,21 +57,33 @@ class CoreDataHelper {
     }
   }
   
-  func createEntity<T: NSManagedObject>(_ entityClass: T.Type) -> T {
-    return T(context: context)
+  func createEntity<T: NSManagedObject>(_ entityName: String) -> T {
+    guard let entityDescription = NSEntityDescription.entity(forEntityName: entityName, in: context) else {
+      fatalError("Entity not found: \(entityName)")
+    }
+    let entity = T(entity: entityDescription, insertInto: context)
+    return entity
   }
   
-  func deleteEntity(_ entity: NSManagedObject) {
-    context.delete(entity)
-    saveContext()
+  func deleteEntity(_ entityName: String, predicate: NSPredicate) {
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
+    fetchRequest.predicate = predicate
+    let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+    
+    do {
+      try context.execute(deleteRequest)
+      saveContext()
+    } catch {
+      print("Error deleting entity: \(error)")
+    }
   }
   
-  func deleteFirstEntity<T: NSManagedObject>(_ entityClass: T.Type) {
-    let fetchRequest: NSFetchRequest<T> = T.fetchRequest() as! NSFetchRequest<T>
+  func deleteFirstEntity(_ entityName: String) {
+    let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: entityName)
     fetchRequest.fetchLimit = 1
     
     do {
-      if let firstEntity = try context.fetch(fetchRequest).first {
+      if let firstEntity = try context.fetch(fetchRequest).first as? NSManagedObject {
         context.delete(firstEntity)
         saveContext()
       }

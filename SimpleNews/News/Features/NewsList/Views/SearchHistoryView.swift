@@ -12,18 +12,11 @@ class SearchHistoryView: UIView {
   
   var searchHistoryQueryHandler: ((String) -> Void)?
   
-  let dummySearchQueries = [
-      "Best restaurants in town",
-      "Weather forecast tomorrow",
-      "How to bake a cake",
-      "Top travel destinations",
-      "Latest technology trends",
-      "Healthy breakfast recipes",
-      "Learn to play guitar",
-      "Home workout routines",
-      "DIY home decor ideas",
-      "Beginner meditation techniques"
-  ]
+  var data: [String] = [] {
+    didSet {
+      tableView.reloadData()
+    }
+  }
   
   private lazy var tableView: UITableView = {
     let tableView = UITableView()
@@ -40,10 +33,15 @@ class SearchHistoryView: UIView {
     super.init(frame: frame)
     
     addSubview(tableView)
-    tableView.snp.makeConstraints { make in
-      make.edges.equalToSuperview()
-    }
+    tableView.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      tableView.topAnchor.constraint(equalTo: topAnchor),
+      tableView.leadingAnchor.constraint(equalTo: leadingAnchor),
+      tableView.trailingAnchor.constraint(equalTo: trailingAnchor),
+      tableView.bottomAnchor.constraint(equalTo: bottomAnchor)
+    ])
   }
+  
   
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
@@ -52,16 +50,16 @@ class SearchHistoryView: UIView {
 
 extension SearchHistoryView: UITableViewDataSource, UITableViewDelegate {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    dummySearchQueries.count
+    data.count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCell(withIdentifier: "searchHistoryTable", for: indexPath)
-    cell.textLabel?.text = dummySearchQueries[indexPath.row]
+    cell.textLabel?.text = data[indexPath.row]
     return cell
   }
   
   func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-    searchHistoryQueryHandler?(dummySearchQueries[indexPath.row])
+    searchHistoryQueryHandler?(data[indexPath.row])
   }
 }

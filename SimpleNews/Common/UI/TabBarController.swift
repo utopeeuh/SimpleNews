@@ -23,11 +23,11 @@ class TabBarController: UITabBarController, UITabBarControllerDelegate {
     
     tabOne.tabBarItem = tabOneBarItem
     
-//    let tabTwo = NewsListViewController()
-//    let tabTwoBarItem2 = UITabBarItem(title: "Favorites", image: UIImage(systemName: "heart"), selectedImage: UIImage(systemName: "heart.fill"))
+    let tabTwo = FavoriteNewsViewController()
+    let tabTwoBarItem2 = UITabBarItem(title: "Favorites", image: UIImage(systemName: "heart"), selectedImage: UIImage(systemName: "heart.fill"))
     
-//    tabTwo.tabBarItem = tabTwoBarItem2
+    tabTwo.tabBarItem = tabTwoBarItem2
     
-    self.viewControllers = [tabOne]
+    self.viewControllers = [tabOne, tabTwo]
   }
 }

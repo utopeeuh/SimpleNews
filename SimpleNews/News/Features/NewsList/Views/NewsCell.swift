@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import SnapKit
 
 class NewsCell: UICollectionViewCell {
   
@@ -45,7 +44,6 @@ class NewsCell: UICollectionViewCell {
     return imageView
   }()
   
-  
   var data: News? {
     didSet {
       configure()
@@ -64,12 +62,12 @@ class NewsCell: UICollectionViewCell {
   private func configure() {
     if let imageUrl = URL(string: data?.multimedia?.first?.url ?? "") {
       imageView.loadImageWithUrl(imageUrl)
-    } else {
-      imageView.image = ImagesUI.placeholder.getImage()
     }
+    
     titleLbl.text = data?.headline?.main ?? ""
     snippetLbl.text = data?.snippet ?? ""
     dateLbl.text = (data?.pubDate ?? "N/A").convertDateStringFormat()
+    layoutIfNeeded()
   }
   
   private func configureViews() {
@@ -77,23 +75,32 @@ class NewsCell: UICollectionViewCell {
     
     let bottomBorder = UIView()
     bottomBorder.backgroundColor = .lightGray
-    bottomBorder.snp.makeConstraints { make in
-      make.height.equalTo(1)
-    }
+    bottomBorder.translatesAutoresizingMaskIntoConstraints = false
+    bottomBorder.heightAnchor.constraint(equalToConstant: 1).isActive = true
     
     let stack = UIStackView()
     stack.axis = .vertical
     stack.spacing = 8
     
-    [imageView, titleLbl, snippetLbl, dateLbl, bottomBorder].forEach { stack.addArrangedSubview($0)}
-    contentView.addSubview(stack)
-    stack.snp.makeConstraints { make in
-      make.leading.trailing.equalToSuperview().inset(20)
-      make.top.bottom.equalToSuperview().inset(8)
+    [imageView, titleLbl, snippetLbl, dateLbl, bottomBorder].forEach { subview in
+      stack.addArrangedSubview(subview)
     }
+    
+    contentView.addSubview(stack)
+    stack.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      stack.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
+      stack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -20),
+      stack.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
+      stack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -8)
+    ])
   }
+  
   
   override func prepareForReuse() {
     imageView.image = nil
+    titleLbl.text = nil
+    snippetLbl.text = nil
+    dateLbl.text = nil
   }
 }

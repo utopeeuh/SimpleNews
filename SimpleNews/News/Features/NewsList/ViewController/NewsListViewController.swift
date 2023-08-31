@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import SnapKit
 
 class NewsListViewController: UIViewController {
   
@@ -14,6 +13,8 @@ class NewsListViewController: UIViewController {
   private let viewModel = NewsViewModel()
   
   private var isCurrentlyScrolling = false
+  
+  private var searchHistoryViewHeightConstraint: NSLayoutConstraint?
   
   // MARK: - UI Properties
   private lazy var searchBar: UISearchBar = {
@@ -65,41 +66,53 @@ class NewsListViewController: UIViewController {
   
   // MARK: - Helpers
   private func fetchData(shouldResetCollectionView: Bool = false){
-    hideKeyboard()
-    showLoading()
-    viewModel.getNews { [weak self] _ in
-      guard let self = self else { return }
-      self.collectionView.reloadData()
-      if shouldResetCollectionView {
-        self.collectionView.setContentOffset(.zero, animated: false)
+    if NetworkMonitor.shared.isConnected {
+      hideKeyboard()
+      showLoading()
+      viewModel.getFavoriteNews()
+      viewModel.getNews { [weak self] _ in
+        guard let self = self else { return }
+        self.collectionView.reloadData()
+        if shouldResetCollectionView {
+          self.collectionView.setContentOffset(.zero, animated: false)
+        }
+        self.dismissLoading(willDismissQueue: true)
       }
-      self.dismissLoading(willDismissQueue: true)
     }
   }
   
-  private func configureViews(){
+  private func configureViews() {
     view.addSubview(searchBar)
-    searchBar.snp.makeConstraints { make in
-      make.top.centerX.equalTo(view.safeAreaLayoutGuide)
-      make.width.equalToSuperview().offset(-40)
-      make.height.equalTo(30)
-    }
+    searchBar.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      searchBar.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+      searchBar.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -40),
+      searchBar.heightAnchor.constraint(equalToConstant: 30)
+    ])
     
     view.addSubview(collectionView)
-    collectionView.snp.makeConstraints { make in
-      make.top.equalTo(searchBar.snp.bottom).offset(20)
-      make.leading.trailing.equalToSuperview()
-      make.bottom.equalTo(view.safeAreaLayoutGuide)
-    }
+    collectionView.translatesAutoresizingMaskIntoConstraints = false
+    NSLayoutConstraint.activate([
+      collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 20),
+      collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+      collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+      collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+    ])
     
     view.addSubview(searchHistoryView)
-    searchHistoryView.snp.makeConstraints { make in
-      make.top.equalTo(searchBar.snp.bottom).offset(15)
-      make.width.equalTo(searchBar).offset(-15)
-      make.centerX.equalTo(searchBar)
-      make.height.equalTo(400)
-    }
+    searchHistoryView.translatesAutoresizingMaskIntoConstraints = false
+    searchHistoryViewHeightConstraint = searchHistoryView.heightAnchor.constraint(equalToConstant: 0)
+    
+    NSLayoutConstraint.activate([
+      searchHistoryView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 15),
+      searchHistoryView.leadingAnchor.constraint(equalTo: searchBar.leadingAnchor, constant: -15),
+      searchHistoryView.trailingAnchor.constraint(equalTo: searchBar.trailingAnchor, constant: 15),
+      searchHistoryView.centerXAnchor.constraint(equalTo: searchBar.centerXAnchor),
+      searchHistoryViewHeightConstraint!
+    ])
   }
+  
 }
 
 // MARK: - UISearchBarDelegate
@@ -107,10 +120,25 @@ extension NewsListViewController: UISearchBarDelegate {
   
   func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
     if !isCurrentlyScrolling {
+      searchHistoryView.data = viewModel.getSearchHistory()
+      
+//      searchHistoryView.translatesAutoresizingMaskIntoConstraints = false
+//      NSLayoutConstraint.activate([
+//        searchHistoryView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 15),
+//        searchHistoryView.widthAnchor.constraint(equalTo: searchBar.widthAnchor, constant: -15),
+//        searchHistoryView.centerXAnchor.constraint(equalTo: searchBar.centerXAnchor),
+//        searchHistoryView.heightAnchor.constraint(equalToConstant: viewModel.getSearchHistoryHeight())
+//      ])
+//
+      
+      searchHistoryViewHeightConstraint?.isActive = false
+      searchHistoryViewHeightConstraint = searchHistoryView.heightAnchor.constraint(equalToConstant: viewModel.getSearchHistoryHeight())
+      searchHistoryViewHeightConstraint?.isActive = true
+      
       searchHistoryView.isHidden = false
     }
   }
-  
+
   func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
     searchHistoryView.isHidden = true
   }

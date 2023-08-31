@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import SnapKit
 
 enum ViewTags {
   static let activityView = 98
@@ -68,10 +67,10 @@ public class LoadingView {
     if loadingQueueCounter > 1 {
       return
     }
-
+    
     NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
     NotificationCenter.default.addObserver(self, selector: #selector(reloadAnimation), name: UIApplication.willEnterForegroundNotification, object: nil)
-
+    
     activityView.startAnimating()
     currentWindow { window in
       backgroundCover = UIView(frame: window.bounds)
@@ -80,11 +79,14 @@ public class LoadingView {
       backgroundCover.addSubview(activityView)
       backgroundCover.tag = ViewTags.backgroundCover
       
-      activityView.snp.makeConstraints { make in
-        make.size.equalTo(widthHeight)
-        make.centerX.centerY.equalToSuperview()
-      }
-
+      activityView.translatesAutoresizingMaskIntoConstraints = false
+      NSLayoutConstraint.activate([
+        activityView.centerXAnchor.constraint(equalTo: backgroundCover.centerXAnchor),
+        activityView.centerYAnchor.constraint(equalTo: backgroundCover.centerYAnchor),
+        activityView.widthAnchor.constraint(equalToConstant: widthHeight),
+        activityView.heightAnchor.constraint(equalToConstant: widthHeight)
+      ])
+      
       animateView()
     }
   }
@@ -97,12 +99,12 @@ public class LoadingView {
         .flatMap { ($0 as? UIWindowScene)?.windows ?? [] }
         .first { $0.isKeyWindow }
       if let activeWindow = activeWindow {
-          window(activeWindow)
+        window(activeWindow)
       }
     } else {
       let activeWindow = UIApplication.shared.keyWindow
       if let activeWindow = activeWindow {
-          window(activeWindow)
+        window(activeWindow)
       }
     }
   }
@@ -139,7 +141,7 @@ fileprivate class QueueView: UIView {
   override init(frame: CGRect) {
     super.init(frame: frame)
   }
-
+  
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }

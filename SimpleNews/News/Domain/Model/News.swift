@@ -34,6 +34,15 @@ public struct News {
   var subsectionName: String?
   var newsDesk: String?
   var id: String?
+  
+  public mutating func configure(newsObject: NewsObject) {
+    id = newsObject.id
+    pubDate = newsObject.date
+    multimedia = [Multimedia(url: newsObject.imageUrl)]
+    leadParagraph = newsObject.paragraph
+    snippet = newsObject.snippet
+    headline = Headline(main: newsObject.title)
+  }
 }
 
 

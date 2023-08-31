@@ -8,8 +8,9 @@
 import Foundation
 
 public struct NewsRepository: NewsRepositoryProtocol {
+  
   fileprivate let remoteDataSource = NewsRemoteDataSource()
-  //  fileprivate let localDataSource = NewsLocalDataSource()
+  fileprivate let localDataSource = NewsLocalDataSource()
   
   public init() { }
   
@@ -19,6 +20,34 @@ public struct NewsRepository: NewsRepositoryProtocol {
   
   public func getSearchNews(query: String, page: Int = 0, completion: @escaping ([News]?) -> Void) {
     remoteDataSource.getSearchNews(query: query, page: page, completion: {completion($0)})
+  }
+  
+  public func saveSearchHistory(query: String) {
+    localDataSource.saveSearchHistory(query: query)
+  }
+  
+  public func getSearchHistory() -> [String] {
+    return localDataSource.getSearchHistory()
+  }
+  
+  public func saveOfflineNews(news: [News]) {
+    localDataSource.saveOfflineNews(news: news)
+  }
+  
+  public func getOfflineNews() -> [News] {
+    return localDataSource.getOfflineNews()
+  }
+  
+  public func saveFavoriteNews(news: News) {
+    localDataSource.saveFavoriteNews(news: news)
+  }
+  
+  public func getFavoriteNews() -> [News] {
+    return localDataSource.getFavoriteNews()
+  }
+  
+  public func deleteFavoriteNews(news: News) {
+    localDataSource.deleteFavoriteNews(news: news)
   }
   
 }
